@@ -44,18 +44,18 @@ app.get('/info', (request, response) => {
         '<p>' + date + '</p>'
     response.send(responsetext)
 })
-/* 
-app.get('/api/notes/:id', (request, response) => {
+ 
+app.get('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
-    const note = notes.find(note => note.id === id)
+    const person = persons.find(person => person.id === id)
 
-    if(note) {          //jos löytyi
-        response.json(note)
+    if(person) {          //jos löytyi
+        response.json(person)
     } else {
         response.status(404).end()
     }
 })
-
+/*
 app.delete('/api/notes/:id', (request, response) => {
     const id = Number(request.params.id)
     notes = notes.filter(note => note.id !== id)
