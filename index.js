@@ -59,37 +59,46 @@ app.get('/api/persons/:id', (request, response) => {
 app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
     persons = persons.filter(person => person.id !== id)
-
+    generateId()
     response.status(204).end()
 })
-/*
+
 const generateId = () => {
-    const maxId = notes.length > 0 
+    const newId = Math.floor(Math.random()*10000000000000)
+    return newId
+
+    /* const maxId = notes.length > 0 
         ? Math.max(...notes.map(n => n.id))
         : 0
-    return maxId + 1
+    return maxId + 1 */
 }
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/persons', (request, response) => {
     const body = request.body
 
-    if (!body.content) {
+    if (!body.name) {
         return response.status(400).json({
-            error: 'content missing'
+            error: 'name missing'
         })
     }
     
-    const note = {
-        content: body.content,
-        important: body.important || false,
+    if (!body.number) {
+        return response.status(400).json({
+            error: 'number missing'
+        })
+    }  
+
+    const person = {
+        name: body.name,
+        number: body.number,
         id: generateId(),
     }
 
-    notes = notes.concat(note)
-    console.log(note)
-    response.json(note)
+    persons = persons.concat(person)
+    console.log(person)
+    response.json(person)
 })
- */
+
 const PORT = 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
