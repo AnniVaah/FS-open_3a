@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 require('dotenv').config()
 
-//const mongoose = require('mongoose')
+//const mongoose = require('mongoose') //tätä käytetään person.js-tiedostossa, ei täällä
 const Person = require('./models/person')
 
 app.use(express.static('dist'))
@@ -20,6 +20,8 @@ const errorHandler = (error, request, response, next) => {
   
     if (error.name === 'CastError') {
       return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message })
     }
   
     next(error)
@@ -60,13 +62,6 @@ app.get('/info', (request, response) => {
         '<p>' + date + '</p>'
         response.send(responsetext)
     })
-
-/* 
-    const date = new Date()
-    const responsetext = 
-        '<p>Phonebook has info for ' + persons.length + ' people.</p>'+
-        '<p>' + date + '</p>'
-    response.send(responsetext) */
 })
  
 app.get('/api/persons/:id', (request, response, next) => {
@@ -102,11 +97,11 @@ app.delete('/api/persons/:id', (request, response, next) => {
     // return maxId + 1 
 } */
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
     console.log(request.body)
 
-     if (!body.name) {
+/*      if (!body.name) {
         return response.status(400).json({
             error: 'name missing'
         })
@@ -116,7 +111,7 @@ app.post('/api/persons', (request, response) => {
         return response.status(400).json({
             error: 'number missing'
         })
-    }
+    } */
 
 /*    if(persons.some(person => (person.name === body.name))){
         return response.status(400).json({
@@ -132,6 +127,7 @@ app.post('/api/persons', (request, response) => {
     person.save().then(savedPerson => {
         response.json(savedPerson)
     })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
