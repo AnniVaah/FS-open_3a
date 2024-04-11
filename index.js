@@ -1,10 +1,11 @@
-require('dotenv').config()
 const express = require('express')
-const morgan = require('morgan')
 const app = express()
-const cors = require('cors')
+require('dotenv').config()
+
 //const mongoose = require('mongoose')
 const Person = require('./models/person')
+
+app.use(express.static('dist'))
 
 const requestLogger = (request, response, next) => {
     console.log('Method:', request.method)
@@ -14,35 +15,29 @@ const requestLogger = (request, response, next) => {
     next()
 }
 
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    }
+  
+    next(error)
+}
+
+const cors = require('cors')
+app.use(cors())
 app.use(express.json())
 app.use(requestLogger)
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+  
+const morgan = require('morgan')
 app.use(morgan('tiny'))
-app.use(cors())
-app.use(express.static('dist'))
 
- let persons = [/*
-    {
-      id: 1,
-      name: "Arto Hellas",
-      number: "040-123456"      
-    },
-    {
-        id: 2,
-        name: "Ada Lovalace",
-        number: "39-44-5323523"      
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "12-43-234345"      
-    },
-    {
-        id: 4,
-        name: "Mary Poppendick",
-        number: "39-23-6423122"      
-    },
-
-*/] 
+ let persons = [] 
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
@@ -64,30 +59,38 @@ app.get('/info', (request, response) => {
     response.send(responsetext)
 })
  
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
-    console.log(id)
-    Person.find({id: request.params.id}).then(person =>{
-        console.log(person)
-        response.json(person)
+    console.log("request.params.id:",id)
+    Person.findById(request.params.id)
+    .then(person =>{
+        if(person) {
+            console.log(person)
+            response.json(person)
+        } else {
+            console.log("no person found")
+            response.status(404).end()
+        }
     })
-    
+    .catch(error => next(error))    
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-    response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+        response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
-const generateId = () => {
+/* const generateId = () => {
     const newId = Math.floor(Math.random()*10000000000000)
     return newId
-    /* const maxId = notes.length > 0 
-        ? Math.max(...notes.map(n => n.id))
-        : 0
-    return maxId + 1 */
-}
+    // const maxId = notes.length > 0 
+    //     ? Math.max(...notes.map(n => n.id))
+    //     : 0
+    // return maxId + 1 
+} */
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -121,11 +124,8 @@ app.post('/api/persons', (request, response) => {
     })
 })
 
-const unknownEndpoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint' })
-}
-  
 app.use(unknownEndpoint)
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
