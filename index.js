@@ -3,8 +3,8 @@ const express = require('express')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
-const mongoose = require('mongoose')
-const Person = require('./models.person')
+//const mongoose = require('mongoose')
+const Person = require('./models/person')
 
 const requestLogger = (request, response, next) => {
     console.log('Method:', request.method)
@@ -50,6 +50,7 @@ app.get('/', (request, response) => {
 
 app.get('/api/persons', (request, response) => {
     Person.find({}).then(persons => {
+        console.log(persons)
         response.json(persons)
     })
     
@@ -64,14 +65,13 @@ app.get('/info', (request, response) => {
 })
  
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
-
-    if(person) {          //jos löytyi
+    const id = request.params.id
+    console.log(id)
+    Person.find({id: request.params.id}).then(person =>{
+        console.log(person)
         response.json(person)
-    } else {
-        response.status(404).end()
-    }
+    })
+    
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -93,7 +93,7 @@ app.post('/api/persons', (request, response) => {
     const body = request.body
     console.log(request.body)
 
-    if (!body.name) {
+     if (!body.name) {
         return response.status(400).json({
             error: 'name missing'
         })
@@ -105,20 +105,20 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    if(persons.some(person => (person.name === body.name))){
+/*    if(persons.some(person => (person.name === body.name))){
         return response.status(400).json({
             error: 'name must be unique'
         })
-    }
+    } */
 
-    const person = {
+    const person = new Person({
         name: body.name,
         number: body.number,
-        id: generateId(),
-    }
+    })
 
-    persons = persons.concat(person)
-    response.json(person)
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
 })
 
 const unknownEndpoint = (request, response) => {
