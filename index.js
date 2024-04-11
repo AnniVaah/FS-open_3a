@@ -52,11 +52,21 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
+    Person.find({}).then(persons=> {
+        const date = new Date()
+        console.log('Montako?',persons.length)
+        const responsetext = 
+        '<p>Phonebook has info for ' + persons.length + ' people.</p>'+
+        '<p>' + date + '</p>'
+        response.send(responsetext)
+    })
+
+/* 
     const date = new Date()
     const responsetext = 
         '<p>Phonebook has info for ' + persons.length + ' people.</p>'+
         '<p>' + date + '</p>'
-    response.send(responsetext)
+    response.send(responsetext) */
 })
  
 app.get('/api/persons/:id', (request, response, next) => {
