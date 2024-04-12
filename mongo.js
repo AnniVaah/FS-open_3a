@@ -21,24 +21,24 @@ const personSchema = new mongoose.Schema({
 const Person = mongoose.model('Person', personSchema)
 
 if(process.argv.length===3) {
-    Person.find({}).then(result => {
-        result.forEach(note => {
-            console.log(note)
-        })
-        mongoose.connection.close()
+  Person.find({}).then(result => {
+    result.forEach(note => {
+      console.log(note)
     })
+    mongoose.connection.close()
+  })
 }else{
-    const newName = process.argv[3]
-    const newNumber = process.argv[4]
+  const newName = process.argv[3]
+  const newNumber = process.argv[4]
 
-    const person = new Person({
-        name: newName,
-        number: newNumber
-    })
+  const person = new Person({
+    name: newName,
+    number: newNumber
+  })
 
-    person.save().then(result => {
-        console.log('person saved!')
-        mongoose.connection.close()
-    }) 
+  person.save().then(() => {
+    console.log('person saved!')
+    mongoose.connection.close()
+  })
 }
 
